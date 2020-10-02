@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .gamemode {
+        margin: 8px 0px;
+      }
+
+      .button {
+        padding: 5px;
+        background-color: lightblue;
+        border: 0;
+        border-radius: 5px;
+        box-shadow: black 2px 2px 4px 0px;
+        cursor: pointer;
+      }
+
+      .button:hover {
+        background-color: rgb(120, 203, 231);
+      }
+
+      td {
+        background-color: lightgray;
+        border: black solid 1px;
+
+        white-space: nowrap;
+        height: 20px;
+      }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div class="gamemode">
+      <span id="name">Voting: </span>
+      <input type="button" class="button" id="start" value="Start" />
+      <input type="button" class="button" id="stop" value="Stop" />
+    </div>
+
+    <!-- <div class="gamemode">
+      <span id="name">Voting2: </span>
+      <div>
+        <table>
+          <tr>
+            <th>Optionen</th>
+          </tr>
+          <tr>
+            <td contenteditable="true" onkeydown="keydown(event)">Optionen</td>
+          </tr>
+        </table>
+      </div>
+      <input type="button" class="button" id="start" value="Start" />
+      <input type="button" class="button" id="stop" value="Stop" />
+    </div> -->
+  </body>
+  <script>
+    function keydown(e) {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+        console.log(e);
+        let sourceElement = e.srcElement;
+        let createdRow = document.createElement('TR');
+        let createdElement = document.createElement('TD');
+        createdElement.contentEditable = 'true';
+        createdElement.onkeydown = keydown;
+        createdElement.innerText = '';
+        createdRow.appendChild(createdElement);
+        sourceElement.parentElement.parentElement.appendChild(createdRow);
+        console.log(e);
+      }
+    }
+  </script>
+</html>

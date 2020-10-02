@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .fullscreen {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: flex-end;
+        overflow: hidden;
+      }
+      .bottomicon {
+        width: 100px;
+      }
+      .bottomicon {
+        width: 100px;
+      }
+      .textcenter {
+        text-align: center;
+        font-size: 200px;
+        color: black;
+      }
+
+      .vote {
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-direction: column;
+      }
+
+      .icon {
+        position: absolute;
+        top: 0px;
+        left: 50%;
+        display: flex;
+        transform: translate(-50%, 0);
+        transition: ease-in 5s;
+        z-index: -1;
+        align-items: center;
+        justify-content: flex-end;
+        flex-direction: column;
+      }
+
+      .emote {
+        width: 32px;
+        height: 32px;
+        position: absolute;
+        transition: top ease-in 3s;
+        top: -32px;
+        left: 0px;
+      }
+
+      .icon > img {
+        width: 32px;
+      }
+
+      .icon > div {
+        font-size: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="SimpleVote" style="display: none" class="fullscreen">
+      <div class="vote" id="vote1">
+        <img class="bottomicon" src="/imgs/Nay.png" />
+        <div class="textcenter" id="vote1count">0</div>
+      </div>
+      <div class="vote" id="vote2">
+        <img class="bottomicon" src="/imgs/Yea.png" />
+        <div class="textcenter" id="vote2count">0</div>
+      </div>
+    </div>
+
+    <div id="EmoteRain" class="fullscreen"></div>
+  </body>
+  <script>
+    let votes = { VoteNay: 0, VoteYea: 0 };
+    var socket = io();
+    let vote1DOM = document.getElementById('vote1count');
+    let vote1 = document.getElementById('vote1');
+    let vote2DOM = document.getElementById('vote2count');
+    let vote2 = document.getElementById('vote2');
+    let EmoteRainDOM = document.getElementById('EmoteRain');
+    //#region voting
+    socket.on('simpleVote', function (data) {
+      let element = document.createElement('DIV');
+      let img = document.createElement('IMG');
+      let text = document.createElement('DIV');
+      text.innerText = data.user;
+      element.appendChild(img);
+      element.appendChild(text);
+      element.classList.add('icon');
+      //#region create VoteNay
+      if (data.message === 'VoteNay') {
+        img.src = '/imgs/Nay.png';
+        element.style.left = `${30 + Math.random() * 40}%`;
+        vote1.appendChild(element);
+        element.style.top =
+          vote1.children[0].getBoundingClientRect().top + 20 + 'px';
+
+        setTimeout(() => {
+          vote1.removeChild(element);
+          votes[data.message]++;
+          redraw();
+        }, 5000);
+      }
+      //#endregion
+      //#region create VoteYea
+      if (data.message === 'VoteYea') {
+        img.src = '/imgs/Yea.png';
+        element.style.left = `${30 + Math.random() * 40}%`;
+        vote2.appendChild(element);
+        element.style.top =
+          vote2.children[0].getBoundingClientRect().top + 20 + 'px';
+
+        setTimeout(() => {
+          vote2.removeChild(element);
+          votes[data.message]++;
+          redraw();
+        }, 5000);
+      }
+      //#endregion
+    });
+    //#endregion
+
+    setInterval(() => {
+      let date = new Date();
+      for (let i = EmoteRainDOM.children.length - 1; i >= 0; i--) {
+        let element = EmoteRainDOM.children[i];
+        let createDate = new Date(element.dataset.time);
+        if (date.getTime() - createDate.getTime() > 5000) {
+          EmoteRainDOM.removeChild(element);
+        }
+      }
+    }, 3000);
+
+    //#region Emoterain
+    socket.on('emoteRain', function (data) {
+      for (let i = 0; i < 20; i++) {
+        let imgTest = document.createElement('IMG');
+        imgTest.classList.add('emote');
+        imgTest.dataset.time = new Date();
+        imgTest.style.left = `${Math.random() * 100}%`;
+        imgTest.src = data;
+        EmoteRainDOM.appendChild(imgTest);
+        setTimeout(() => {
+          imgTest.style.top = `${Math.random() * 600 + window.innerHeight}px`;
+        }, 50);
+      }
+    });
+    //#endregion
+
+    socket.on('changedMode', function (data) {
+      changeOverlayTo(data);
+    });
+
+    function redraw() {
+      vote1DOM.innerText = '' + votes.VoteNay;
+      vote2DOM.innerText = '' + votes.VoteYea;
+      vote2.children[0].style.width = `${votes.VoteYea * 5 + 100}px`;
+      vote1.children[0].style.width = `${votes.VoteNay * 5 + 100}px`;
+    }
+
+    function changeOverlayTo(string) {
+      let simpleVoteDOM = document.getElementById('SimpleVote');
+      let emoteRainDOM = document.getElementById('EmoteRain');
+      if (string == 'Disabled') {
+        EmoteRainDOM.innerHTML = '';
+        votes = { VoteNay: 0, VoteYea: 0 };
+        simpleVoteDOM.style.display = 'none';
+        EmoteRainDOM.style.display = 'none';
+      }
+      if (string == 'Choose') {
+      }
+      if (string == 'Vote') {
+        redraw();
+        simpleVoteDOM.style.display = '';
+      }
+      if (string == 'EmoteRain') {
+        emoteRainDOM.style.display = '';
+      }
+    }
+  </script>
+</html>
